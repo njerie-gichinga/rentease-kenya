@@ -3,7 +3,14 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Home, ChevronDown, ChevronUp, Pencil, Trash2 } from "lucide-react";
+import { Plus, Home, ChevronDown, ChevronUp, Pencil, Trash2, Search, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +42,11 @@ const Properties = () => {
   const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
   const [unitDialogProperty, setUnitDialogProperty] = useState<string | null>(null);
   const [bulkUnitProperty, setBulkUnitProperty] = useState<string | null>(null);
+
+  // Filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterOccupancy, setFilterOccupancy] = useState<string>("all");
 
   // Edit / delete state
   const [editProperty, setEditProperty] = useState<any | null>(null);
@@ -301,98 +313,160 @@ const Properties = () => {
           </Dialog>
         </div>
 
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading properties…</p>
-        ) : properties.length === 0 ? (
-          <div className="rounded-xl border bg-card p-8 text-center shadow-card">
-            <Home className="mx-auto h-10 w-10 text-muted-foreground/50" />
-            <p className="mt-3 text-sm text-muted-foreground">No properties yet. Add your first property to get started.</p>
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or address…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {properties.map((p) => {
-              const propertyUnits = units.filter((u) => u.property_id === p.id);
-              const occupied = propertyUnits.filter((u) => u.status === "occupied").length;
-              const total = propertyUnits.length;
-              const occupancy = total > 0 ? Math.round((occupied / total) * 100) : 0;
-              const isExpanded = expandedProperty === p.id;
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="apartment">Apartment</SelectItem>
+              <SelectItem value="bedsitter">Bedsitter</SelectItem>
+              <SelectItem value="stalls">Stalls</SelectItem>
+              <SelectItem value="house">House</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterOccupancy} onValueChange={setFilterOccupancy}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <SelectValue placeholder="Occupancy" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Occupancy</SelectItem>
+              <SelectItem value="full">Fully Occupied</SelectItem>
+              <SelectItem value="partial">Partially Occupied</SelectItem>
+              <SelectItem value="empty">Empty</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-              return (
-                <div key={p.id} className="rounded-xl border bg-card shadow-card transition-shadow hover:shadow-card-hover">
-                  <div className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <Home className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setEditProperty(p)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Edit property">
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={() => setDeletePropertyId(p.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Delete property">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={() => setExpandedProperty(isExpanded ? null : p.id)} className="rounded-md p-1.5 text-muted-foreground hover:text-foreground">
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <h3 className="mt-3 font-display text-base font-semibold text-card-foreground">{p.name}</h3>
-                    <p className="text-xs text-muted-foreground">{p.address}</p>
-                    <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="rounded-full bg-secondary px-2 py-0.5 font-medium text-secondary-foreground">{p.property_type}</span>
-                      <span className="text-muted-foreground">{occupied}/{total} occupied</span>
-                    </div>
-                    <div className="mt-2 h-1.5 rounded-full bg-muted">
-                      <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${occupancy}%` }} />
-                    </div>
-                  </div>
+        {(() => {
+          // Filter properties
+          const filtered = properties.filter((p) => {
+            const q = searchQuery.toLowerCase();
+            if (q && !p.name.toLowerCase().includes(q) && !(p.address || "").toLowerCase().includes(q)) return false;
+            if (filterType !== "all" && p.property_type !== filterType) return false;
+            if (filterOccupancy !== "all") {
+              const pUnits = units.filter((u) => u.property_id === p.id);
+              const occ = pUnits.filter((u) => u.status === "occupied").length;
+              const tot = pUnits.length;
+              if (filterOccupancy === "full" && (tot === 0 || occ !== tot)) return false;
+              if (filterOccupancy === "partial" && (tot === 0 || occ === 0 || occ === tot)) return false;
+              if (filterOccupancy === "empty" && occ !== 0) return false;
+            }
+            return true;
+          });
 
-                  {isExpanded && (
-                    <div className="border-t px-4 py-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-card-foreground">Units</p>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setBulkUnitProperty(p.id)}>
-                            <Plus className="mr-1 h-3 w-3" /> Bulk Add
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setUnitDialogProperty(p.id)}>
-                            <Plus className="mr-1 h-3 w-3" /> Add Unit
-                          </Button>
+          return isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading properties…</p>
+          ) : properties.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center shadow-card">
+              <Home className="mx-auto h-10 w-10 text-muted-foreground/50" />
+              <p className="mt-3 text-sm text-muted-foreground">No properties yet. Add your first property to get started.</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center shadow-card">
+              <Search className="mx-auto h-10 w-10 text-muted-foreground/50" />
+              <p className="mt-3 text-sm text-muted-foreground">No properties match your filters.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((p) => {
+                const propertyUnits = units.filter((u) => u.property_id === p.id);
+                const occupied = propertyUnits.filter((u) => u.status === "occupied").length;
+                const total = propertyUnits.length;
+                const occupancy = total > 0 ? Math.round((occupied / total) * 100) : 0;
+                const isExpanded = expandedProperty === p.id;
+
+                return (
+                  <div key={p.id} className="rounded-xl border bg-card shadow-card transition-shadow hover:shadow-card-hover">
+                    <div className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                          <Home className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setEditProperty(p)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground" title="Edit property">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => setDeletePropertyId(p.id)} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive" title="Delete property">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => setExpandedProperty(isExpanded ? null : p.id)} className="rounded-md p-1.5 text-muted-foreground hover:text-foreground">
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
                         </div>
                       </div>
-                      {propertyUnits.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No units yet.</p>
-                      ) : (
-                        <div className="space-y-1.5">
-                          {propertyUnits.map((u) => (
-                            <div key={u.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-xs">
-                              <span className="font-medium text-card-foreground">{u.unit_number}</span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">KES {u.rent_amount.toLocaleString()}</span>
-                                <span className={`rounded-full px-2 py-0.5 font-medium ${u.status === "occupied" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
-                                  {u.status}
-                                </span>
-                                <button onClick={() => setEditUnit(u)} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Edit unit">
-                                  <Pencil className="h-3 w-3" />
-                                </button>
-                                <button onClick={() => setDeleteUnitId(u.id)} className="rounded p-1 text-muted-foreground hover:text-destructive" title="Delete unit">
-                                  <Trash2 className="h-3 w-3" />
-                                </button>
+                      <h3 className="mt-3 font-display text-base font-semibold text-card-foreground">{p.name}</h3>
+                      <p className="text-xs text-muted-foreground">{p.address}</p>
+                      <div className="mt-3 flex items-center justify-between text-xs">
+                        <span className="rounded-full bg-secondary px-2 py-0.5 font-medium text-secondary-foreground">{p.property_type}</span>
+                        <span className="text-muted-foreground">{occupied}/{total} occupied</span>
+                      </div>
+                      <div className="mt-2 h-1.5 rounded-full bg-muted">
+                        <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${occupancy}%` }} />
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="border-t px-4 py-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-card-foreground">Units</p>
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setBulkUnitProperty(p.id)}>
+                              <Plus className="mr-1 h-3 w-3" /> Bulk Add
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setUnitDialogProperty(p.id)}>
+                              <Plus className="mr-1 h-3 w-3" /> Add Unit
+                            </Button>
+                          </div>
+                        </div>
+                        {propertyUnits.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No units yet.</p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {propertyUnits.map((u) => (
+                              <div key={u.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-xs">
+                                <span className="font-medium text-card-foreground">{u.unit_number}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-muted-foreground">KES {u.rent_amount.toLocaleString()}</span>
+                                  <span className={`rounded-full px-2 py-0.5 font-medium ${u.status === "occupied" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
+                                    {u.status}
+                                  </span>
+                                  <button onClick={() => setEditUnit(u)} className="rounded p-1 text-muted-foreground hover:text-foreground" title="Edit unit">
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button onClick={() => setDeleteUnitId(u.id)} className="rounded p-1 text-muted-foreground hover:text-destructive" title="Delete unit">
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
-
-      {/* Bulk Add Units Dialog */}
       <Dialog open={!!bulkUnitProperty} onOpenChange={(open) => !open && setBulkUnitProperty(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
