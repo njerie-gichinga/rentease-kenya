@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Building2, CreditCard, Home, Wrench, LogOut, PartyPopper } from "lucide-react";
+import { Building2, CreditCard, Home, Wrench, LogOut, ArrowLeftRight, PartyPopper } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/StatsCard";
@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 const TenantPortal = () => {
-  const { user, signOut } = useAuth();
+  const { user, roles, switchRole, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [welcomeData, setWelcomeData] = useState<{ unit_number: string; property_name: string; rent_amount: number } | null>(null);
@@ -76,10 +76,18 @@ const TenantPortal = () => {
             </div>
             <span className="font-display text-lg font-bold text-foreground">RentWise</span>
           </Link>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut className="mr-1.5 h-3.5 w-3.5" />
-            Sign out
-          </Button>
+          <div className="flex items-center gap-2">
+            {roles.includes("landlord") && (
+              <Button variant="outline" size="sm" onClick={() => { switchRole("landlord"); navigate("/dashboard", { replace: true }); }}>
+                <ArrowLeftRight className="mr-1.5 h-3.5 w-3.5" />
+                Landlord View
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="mr-1.5 h-3.5 w-3.5" />
+              Sign out
+            </Button>
+          </div>
         </div>
       </header>
 
