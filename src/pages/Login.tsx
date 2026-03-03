@@ -27,8 +27,11 @@ const Login = () => {
     // Fetch role to redirect
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
-      navigate(roleData?.role === "tenant" ? "/tenant-portal" : "/dashboard", { replace: true });
+      const { data: roleData } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      const roles = (roleData ?? []).map(r => r.role);
+      const saved = localStorage.getItem("rentwise_active_role");
+      const activeRole = saved && roles.includes(saved as any) ? saved : roles[0];
+      navigate(activeRole === "tenant" ? "/tenant-portal" : "/dashboard", { replace: true });
     }
   };
 
