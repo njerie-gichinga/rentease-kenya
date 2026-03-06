@@ -284,25 +284,31 @@ const Payments = () => {
                     <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Amount</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Method</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Ref</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3 font-medium text-card-foreground">{p.tenant_name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{p.unit_number}</td>
-                      <td className="px-4 py-3 font-semibold text-card-foreground">KES {p.amount.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{p.method}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{p.mpesa_ref || "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${p.status === "completed" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                     <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</th>
+                     <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">Receipt</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y">
+                   {filtered.map((p) => (
+                     <tr key={p.id} className="hover:bg-muted/30 transition-colors">
+                       <td className="px-4 py-3 font-medium text-card-foreground">{p.tenant_name}</td>
+                       <td className="px-4 py-3 text-muted-foreground">{p.unit_number}</td>
+                       <td className="px-4 py-3 font-semibold text-card-foreground">KES {p.amount.toLocaleString()}</td>
+                       <td className="px-4 py-3 text-muted-foreground">{p.method}</td>
+                       <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{p.mpesa_ref || "—"}</td>
+                       <td className="px-4 py-3">
+                         <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${p.status === "completed" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
+                           {p.status}
+                         </span>
+                       </td>
+                       <td className="px-4 py-3 text-right">
+                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setReceiptPayment(p); setReceiptOpen(true); }}>
+                           <FileText className="h-4 w-4 text-muted-foreground" />
+                         </Button>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
               </table>
             </div>
             <div className="divide-y sm:hidden">
