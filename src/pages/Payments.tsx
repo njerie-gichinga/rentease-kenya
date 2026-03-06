@@ -312,23 +312,25 @@ const Payments = () => {
               </table>
             </div>
             <div className="divide-y sm:hidden">
-              {filtered.map((p) => (
-                <div key={p.id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-card-foreground">{p.tenant_name}</p>
-                    <p className="text-xs text-muted-foreground">Unit {p.unit_number} · {p.method} · {p.payment_date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-card-foreground">KES {p.amount.toLocaleString()}</p>
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${p.status === "completed" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
-                      {p.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+               {filtered.map((p) => (
+                 <div key={p.id} className="flex items-center justify-between px-4 py-3" onClick={() => { setReceiptPayment(p); setReceiptOpen(true); }}>
+                   <div>
+                     <p className="text-sm font-medium text-card-foreground">{p.tenant_name}</p>
+                     <p className="text-xs text-muted-foreground">Unit {p.unit_number} · {p.method} · {p.payment_date}</p>
+                   </div>
+                   <div className="text-right">
+                     <p className="text-sm font-semibold text-card-foreground">KES {p.amount.toLocaleString()}</p>
+                     <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${p.status === "completed" ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>
+                       {p.status}
+                     </span>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           </div>
+         )}
+
+         <PaymentReceipt open={receiptOpen} onOpenChange={setReceiptOpen} payment={receiptPayment} />
       </div>
     </DashboardLayout>
   );
