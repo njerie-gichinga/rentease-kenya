@@ -151,6 +151,45 @@ const Tenants = () => {
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
 
+  // Resend invitation mutation
+  const resendMutation = useMutation({
+    mutationFn: async (inv: any) => {
+      try {
+        await supabase.functions.invoke("send-invitation", {
+          body: {
+            tenant_name: inv.tenant_name,
+            tenant_email: inv.tenant_email,
+            property_name: (inv.units as any)?.properties?.name || "",
+            unit_number: (inv.units as any)?.unit_number || "",
+            invitation_id: inv.id,
+            app_url: window.location.origin,
+          },
+        });
+      } catch (err) {
+        throw new Error("Failed to resend invitation email");
+      }
+    },
+    onSuccess: () => toast({ title: "Invitation resent!" }),
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  // Recall (cancel) invitation mutation
+  const recallMutation = useMutation({
+    mutationFn: async (invId: string) => {
+      const { error } = await supabase
+        .from("tenant_invitations")
+        .update({ status: "cancelled" })
+        .eq("id", invId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+      toast({ title: "Invitation recalled" });
+      setRecallInvitation(null);
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
   // Invite mutation
   const inviteMutation = useMutation({
     mutationFn: async (form: { tenant_name: string; tenant_email: string; tenant_phone: string; unit_id: string }) => {
