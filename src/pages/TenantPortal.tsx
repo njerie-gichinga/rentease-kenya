@@ -278,6 +278,35 @@ const TenantPortal = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {/* Image upload */}
+                    <div className="space-y-2">
+                      <Label>Photo (optional)</Label>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
+                      {reqImagePreview ? (
+                        <div className="relative w-full">
+                          <img src={reqImagePreview} alt="Preview" className="w-full rounded-lg border object-cover max-h-48" />
+                          <button type="button" onClick={clearImage} className="absolute top-1.5 right-1.5 rounded-full bg-background/80 p-1 hover:bg-background">
+                            <X className="h-4 w-4 text-foreground" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 py-6 text-sm text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                        >
+                          <ImagePlus className="h-5 w-5" />
+                          Add a photo
+                        </button>
+                      )}
+                    </div>
                     <Button className="w-full" disabled={!reqTitle.trim() || createRequestMutation.isPending} onClick={() => createRequestMutation.mutate()}>
                       {createRequestMutation.isPending ? "Submitting…" : "Submit Request"}
                     </Button>
