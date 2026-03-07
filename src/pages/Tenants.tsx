@@ -3,7 +3,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Search, Phone, Home, Pencil, Trash2 } from "lucide-react";
+import { UserPlus, Search, Phone, Home, Pencil, Trash2, RotateCw, XCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,7 @@ const Tenants = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editTenant, setEditTenant] = useState<{ unitId: string; tenantId: string; name: string; phone: string } | null>(null);
   const [removeTenant, setRemoveTenant] = useState<{ unitId: string; name: string } | null>(null);
+  const [recallInvitation, setRecallInvitation] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch vacant units belonging to current landlord
   const { data: vacantUnits = [] } = useQuery({
@@ -147,6 +148,45 @@ const Tenants = () => {
       queryClient.invalidateQueries({ queryKey: ["vacant-units"] });
       toast({ title: "Tenant removed from unit" });
       setRemoveTenant(null);
+    },
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  // Resend invitation mutation
+  const resendMutation = useMutation({
+    mutationFn: async (inv: any) => {
+      try {
+        await supabase.functions.invoke("send-invitation", {
+          body: {
+            tenant_name: inv.tenant_name,
+            tenant_email: inv.tenant_email,
+            property_name: (inv.units as any)?.properties?.name || "",
+            unit_number: (inv.units as any)?.unit_number || "",
+            invitation_id: inv.id,
+            app_url: window.location.origin,
+          },
+        });
+      } catch (err) {
+        throw new Error("Failed to resend invitation email");
+      }
+    },
+    onSuccess: () => toast({ title: "Invitation resent!" }),
+    onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+  });
+
+  // Recall (cancel) invitation mutation
+  const recallMutation = useMutation({
+    mutationFn: async (invId: string) => {
+      const { error } = await supabase
+        .from("tenant_invitations")
+        .update({ status: "cancelled" })
+        .eq("id", invId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invitations"] });
+      toast({ title: "Invitation recalled" });
+      setRecallInvitation(null);
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });
@@ -267,7 +307,28 @@ const Tenants = () => {
                     <p className="text-sm font-medium text-card-foreground">{inv.tenant_name}</p>
                     <p className="text-xs text-muted-foreground">{inv.tenant_email} · {(inv.units as any)?.properties?.name} – {(inv.units as any)?.unit_number}</p>
                   </div>
-                  <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">pending</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1 text-xs"
+                      disabled={resendMutation.isPending}
+                      onClick={() => resendMutation.mutate(inv)}
+                    >
+                      <RotateCw className="h-3 w-3" />
+                      Resend
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
+                      onClick={() => setRecallInvitation({ id: inv.id, name: inv.tenant_name })}
+                    >
+                      <XCircle className="h-3 w-3" />
+                      Recall
+                    </Button>
+                    <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">pending</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -308,7 +369,24 @@ const Tenants = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setRemoveTenant({ unitId: t.id, name: t.name })}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                </div>
+        {/* Recall Invitation Confirmation */}
+        <AlertDialog open={!!recallInvitation} onOpenChange={(o) => !o && setRecallInvitation(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Recall invitation?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will cancel the invitation for <strong>{recallInvitation?.name}</strong>. They will no longer be able to accept it.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => recallInvitation && recallMutation.mutate(recallInvitation.id)}>
+                Recall
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
               </div>
             ))}
           </div>
