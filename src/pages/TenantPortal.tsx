@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Building2, CreditCard, Home, Wrench, LogOut, ArrowLeftRight, PartyPopper, Plus, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Building2, CreditCard, Home, Wrench, LogOut, ArrowLeftRight, PartyPopper, Plus, Clock, CheckCircle2, AlertTriangle, ImagePlus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -23,6 +23,9 @@ const TenantPortal = () => {
   const [reqTitle, setReqTitle] = useState("");
   const [reqDesc, setReqDesc] = useState("");
   const [reqPriority, setReqPriority] = useState("medium");
+  const [reqImage, setReqImage] = useState<File | null>(null);
+  const [reqImagePreview, setReqImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("rentwise_welcome");
@@ -78,14 +81,47 @@ const TenantPortal = () => {
     enabled: !!user,
   });
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB allowed.", variant: "destructive" });
+      return;
+    }
+    setReqImage(file);
+    setReqImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setReqImage(null);
+    setReqImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const createRequestMutation = useMutation({
     mutationFn: async () => {
+      let imageUrl: string | null = null;
+
+      if (reqImage) {
+        const ext = reqImage.name.split(".").pop();
+        const path = `${user!.id}/${Date.now()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("maintenance-images")
+          .upload(path, reqImage);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage
+          .from("maintenance-images")
+          .getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from("maintenance_requests").insert({
         unit_id: unit!.id,
         tenant_id: user!.id,
         title: reqTitle.trim(),
         description: reqDesc.trim() || null,
         priority: reqPriority,
+        image_url: imageUrl,
       });
       if (error) throw error;
 
@@ -106,6 +142,7 @@ const TenantPortal = () => {
       setReqTitle("");
       setReqDesc("");
       setReqPriority("medium");
+      clearImage();
       toast({ title: "Request submitted", description: "Your landlord will be notified." });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
@@ -241,6 +278,35 @@ const TenantPortal = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {/* Image upload */}
+                    <div className="space-y-2">
+                      <Label>Photo (optional)</Label>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
+                      {reqImagePreview ? (
+                        <div className="relative w-full">
+                          <img src={reqImagePreview} alt="Preview" className="w-full rounded-lg border object-cover max-h-48" />
+                          <button type="button" onClick={clearImage} className="absolute top-1.5 right-1.5 rounded-full bg-background/80 p-1 hover:bg-background">
+                            <X className="h-4 w-4 text-foreground" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-muted-foreground/25 py-6 text-sm text-muted-foreground hover:border-muted-foreground/50 transition-colors"
+                        >
+                          <ImagePlus className="h-5 w-5" />
+                          Add a photo
+                        </button>
+                      )}
+                    </div>
                     <Button className="w-full" disabled={!reqTitle.trim() || createRequestMutation.isPending} onClick={() => createRequestMutation.mutate()}>
                       {createRequestMutation.isPending ? "Submitting…" : "Submit Request"}
                     </Button>
@@ -300,6 +366,9 @@ const TenantPortal = () => {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-card-foreground">{r.title}</p>
                         {r.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{r.description}</p>}
+                        {r.image_url && (
+                          <img src={r.image_url} alt="Issue photo" className="mt-2 rounded-lg border max-h-32 object-cover" />
+                        )}
                         <p className="text-xs text-muted-foreground mt-1">
                           {new Date(r.created_at).toLocaleDateString("en-KE", { month: "short", day: "numeric" })} · {r.priority} priority
                         </p>
