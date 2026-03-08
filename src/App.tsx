@@ -19,6 +19,7 @@ import TenantPortal from "./pages/TenantPortal";
 import NotFound from "./pages/NotFound";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Announcements from "./pages/Announcements";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
