@@ -84,6 +84,7 @@ const ResetPassword = () => {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  <PasswordStrength password={password} />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="confirm">Confirm password</Label>
