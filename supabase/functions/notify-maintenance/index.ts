@@ -76,7 +76,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "RentWise <onboarding@resend.dev>",
+        from: "RentEase <onboarding@resend.dev>",
         to: [landlord.email],
         subject: `🔧 New repair request: ${title}`,
         html: emailHtml,

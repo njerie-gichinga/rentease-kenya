@@ -181,7 +181,7 @@ const AcceptInvitation = () => {
           {status === "accepted" && acceptedData && (
             <div className="flex flex-col items-center gap-3 py-6 text-center">
               <CheckCircle className="h-10 w-10 text-primary" />
-              <h2 className="font-display text-lg font-semibold text-card-foreground">Welcome to RentWise!</h2>
+              <h2 className="font-display text-lg font-semibold text-card-foreground">Welcome to RentEase!</h2>
               <div className="rounded-lg bg-muted p-4 text-left">
                 <p className="text-sm font-medium text-card-foreground">Unit {acceptedData.unit_number}</p>
                 <p className="text-xs text-muted-foreground">{acceptedData.property_name}</p>

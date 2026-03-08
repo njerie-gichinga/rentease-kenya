@@ -52,9 +52,9 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "RentWise <onboarding@resend.dev>",
+        from: "RentEase <onboarding@resend.dev>",
         to: [tenant_email],
-        subject: `${tenant_name}, you've been invited to RentWise`,
+        subject: `${tenant_name}, you've been invited to RentEase`,
         html: emailHtml,
       }),
     });
