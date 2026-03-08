@@ -64,30 +64,36 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          checkout_request_id: string | null
           created_at: string
           id: string
           mpesa_ref: string | null
           payment_date: string
+          payment_method: string
           status: string
           tenant_id: string | null
           unit_id: string
         }
         Insert: {
           amount: number
+          checkout_request_id?: string | null
           created_at?: string
           id?: string
           mpesa_ref?: string | null
           payment_date?: string
+          payment_method?: string
           status?: string
           tenant_id?: string | null
           unit_id: string
         }
         Update: {
           amount?: number
+          checkout_request_id?: string | null
           created_at?: string
           id?: string
           mpesa_ref?: string | null
           payment_date?: string
+          payment_method?: string
           status?: string
           tenant_id?: string | null
           unit_id?: string
