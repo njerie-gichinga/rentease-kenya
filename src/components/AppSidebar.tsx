@@ -5,6 +5,7 @@ import {
   Users,
   CreditCard,
   Wrench,
+  Megaphone,
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -29,6 +30,7 @@ const navItems = [
   { title: "Tenants", url: "/tenants", icon: Users },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
+  { title: "Announcements", url: "/announcements", icon: Megaphone },
 ];
 
 export function AppSidebar() {
