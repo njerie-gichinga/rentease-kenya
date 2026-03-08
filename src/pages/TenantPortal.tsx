@@ -26,6 +26,9 @@ const TenantPortal = () => {
   const [reqImage, setReqImage] = useState<File | null>(null);
   const [reqImagePreview, setReqImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [payPhone, setPayPhone] = useState("");
+  const [payingRent, setPayingRent] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("rentwise_welcome");
@@ -153,8 +156,29 @@ const TenantPortal = () => {
     navigate("/login", { replace: true });
   };
 
-  const handlePayRent = () => {
-    toast({ title: "Coming soon", description: "M-Pesa payment integration is being set up." });
+  const handlePayRent = async () => {
+    if (!payPhone.trim() || !unit) return;
+    setPayingRent(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mpesa-stk-push", {
+        body: {
+          phone: payPhone.trim(),
+          amount: unit.rent_amount,
+          unit_id: unit.id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Check your phone", description: "Enter your M-Pesa PIN to complete payment." });
+      setPayDialogOpen(false);
+      setPayPhone("");
+      // Refresh payments after a delay to pick up the pending record
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ["tenant-payments"] }), 3000);
+    } catch (e: any) {
+      toast({ title: "Payment failed", description: e.message, variant: "destructive" });
+    } finally {
+      setPayingRent(false);
+    }
   };
 
   const lastPayment = payments[0];
@@ -243,10 +267,44 @@ const TenantPortal = () => {
 
             {/* Quick Actions */}
             <div className="grid gap-3 grid-cols-2">
-              <Button className="h-auto flex-col gap-1.5 py-4" size="lg" onClick={handlePayRent}>
-                <CreditCard className="h-5 w-5" />
-                <span className="text-sm font-medium">Pay Rent</span>
-              </Button>
+              <Dialog open={payDialogOpen} onOpenChange={setPayDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="h-auto flex-col gap-1.5 py-4" size="lg">
+                    <CreditCard className="h-5 w-5" />
+                    <span className="text-sm font-medium">Pay Rent</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Pay Rent via M-Pesa</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="rounded-lg border bg-muted/50 p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Amount</p>
+                      <p className="text-2xl font-bold text-foreground">KES {unit?.rent_amount.toLocaleString()}</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pay-phone">M-Pesa Phone Number</Label>
+                      <Input
+                        id="pay-phone"
+                        type="tel"
+                        placeholder="0712345678"
+                        value={payPhone}
+                        onChange={(e) => setPayPhone(e.target.value)}
+                        maxLength={13}
+                      />
+                      <p className="text-xs text-muted-foreground">You'll receive an STK push prompt on this number</p>
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={!payPhone.trim() || payingRent}
+                      onClick={handlePayRent}
+                    >
+                      {payingRent ? "Sending prompt…" : "Pay Now"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="h-auto flex-col gap-1.5 py-4" size="lg" disabled={!unit}>
