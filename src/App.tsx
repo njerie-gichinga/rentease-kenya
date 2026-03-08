@@ -44,6 +44,7 @@ const App = () => (
             <Route path="/maintenance" element={<ProtectedRoute allowedRole="landlord"><Maintenance /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute allowedRole="landlord"><Announcements /></ProtectedRoute>} />
             <Route path="/tenant-portal" element={<ProtectedRoute allowedRole="tenant"><TenantPortal /></ProtectedRoute>} />
+            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
