@@ -26,6 +26,9 @@ const TenantPortal = () => {
   const [reqImage, setReqImage] = useState<File | null>(null);
   const [reqImagePreview, setReqImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [payDialogOpen, setPayDialogOpen] = useState(false);
+  const [payPhone, setPayPhone] = useState("");
+  const [payingRent, setPayingRent] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("rentwise_welcome");

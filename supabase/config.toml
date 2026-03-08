@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.notify-maintenance]
 verify_jwt = false
+
+[functions.mpesa-stk-push]
+verify_jwt = false
+
+[functions.mpesa-callback]
+verify_jwt = false
