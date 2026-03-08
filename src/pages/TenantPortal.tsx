@@ -156,8 +156,29 @@ const TenantPortal = () => {
     navigate("/login", { replace: true });
   };
 
-  const handlePayRent = () => {
-    toast({ title: "Coming soon", description: "M-Pesa payment integration is being set up." });
+  const handlePayRent = async () => {
+    if (!payPhone.trim() || !unit) return;
+    setPayingRent(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("mpesa-stk-push", {
+        body: {
+          phone: payPhone.trim(),
+          amount: unit.rent_amount,
+          unit_id: unit.id,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({ title: "Check your phone", description: "Enter your M-Pesa PIN to complete payment." });
+      setPayDialogOpen(false);
+      setPayPhone("");
+      // Refresh payments after a delay to pick up the pending record
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ["tenant-payments"] }), 3000);
+    } catch (e: any) {
+      toast({ title: "Payment failed", description: e.message, variant: "destructive" });
+    } finally {
+      setPayingRent(false);
+    }
   };
 
   const lastPayment = payments[0];
