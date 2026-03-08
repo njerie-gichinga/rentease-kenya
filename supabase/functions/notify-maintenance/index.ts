@@ -65,7 +65,7 @@ serve(async (req) => {
           </p>
           ${tenant_name ? `<p style="margin: 8px 0 0; font-size: 13px; color: #666;">Submitted by: ${tenant_name}</p>` : ""}
         </div>
-        <p style="color: #666; font-size: 13px;">Log in to RentWise to manage this request.</p>
+        <p style="color: #666; font-size: 13px;">Log in to RentEase to manage this request.</p>
       </div>
     `;
 
