@@ -28,6 +28,7 @@ import {
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Properties", url: "/properties", icon: Home },
+  { title: "Units", url: "/units", icon: DoorOpen },
   { title: "Tenants", url: "/tenants", icon: Users },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
