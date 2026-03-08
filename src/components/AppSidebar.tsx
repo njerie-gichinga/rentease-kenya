@@ -5,6 +5,7 @@ import {
   Users,
   CreditCard,
   Wrench,
+  Megaphone,
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
