@@ -19,6 +19,7 @@ import TenantPortal from "./pages/TenantPortal";
 import NotFound from "./pages/NotFound";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import Announcements from "./pages/Announcements";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/maintenance" element={<ProtectedRoute allowedRole="landlord"><Maintenance /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute allowedRole="landlord"><Announcements /></ProtectedRoute>} />
             <Route path="/tenant-portal" element={<ProtectedRoute allowedRole="tenant"><TenantPortal /></ProtectedRoute>} />
+            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
