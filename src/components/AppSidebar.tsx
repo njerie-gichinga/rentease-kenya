@@ -8,6 +8,7 @@ import {
   Wrench,
   Megaphone,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
@@ -34,6 +35,7 @@ const navItems = [
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Maintenance", url: "/maintenance", icon: Wrench },
   { title: "Announcements", url: "/announcements", icon: Megaphone },
+  { title: "Help", url: "/help", icon: HelpCircle },
 ];
 
 export function AppSidebar() {

@@ -21,6 +21,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import Announcements from "./pages/Announcements";
 import Install from "./pages/Install";
 import Units from "./pages/Units";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/maintenance" element={<ProtectedRoute allowedRole="landlord"><Maintenance /></ProtectedRoute>} />
             <Route path="/announcements" element={<ProtectedRoute allowedRole="landlord"><Announcements /></ProtectedRoute>} />
             <Route path="/tenant-portal" element={<ProtectedRoute allowedRole="tenant"><TenantPortal /></ProtectedRoute>} />
+            <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
