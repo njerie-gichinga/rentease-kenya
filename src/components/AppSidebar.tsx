@@ -10,6 +10,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -87,6 +88,7 @@ export function AppSidebar() {
           <LogOut className="h-4 w-4" />
           <span>Sign out</span>
         </button>
+        <DeleteAccountDialog />
       </SidebarFooter>
     </Sidebar>
   );
