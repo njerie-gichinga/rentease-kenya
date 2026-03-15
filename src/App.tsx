@@ -21,6 +21,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import Announcements from "./pages/Announcements";
 import Install from "./pages/Install";
 import Units from "./pages/Units";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
