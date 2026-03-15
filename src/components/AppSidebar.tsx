@@ -8,6 +8,7 @@ import {
   Wrench,
   Megaphone,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
