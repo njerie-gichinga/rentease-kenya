@@ -132,6 +132,15 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground">Welcome back. Here's your rental overview.</p>
           </div>
           <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleTestReminder}
+              disabled={testingReminder}
+            >
+              <Bell className="mr-1.5 h-3.5 w-3.5" />
+              {testingReminder ? "Sending…" : "Test Reminders"}
+            </Button>
             <Button size="sm" variant="outline" asChild>
               <Link to="/properties">
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
