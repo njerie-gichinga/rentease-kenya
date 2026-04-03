@@ -134,6 +134,7 @@ const Dashboard = () => {
           </div>
           <div className="flex gap-2">
             <MonthlyReportButton />
+            <Button
               size="sm"
               variant="outline"
               onClick={handleTestReminder}
